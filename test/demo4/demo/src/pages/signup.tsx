@@ -16,6 +16,7 @@ export default function SignupPage() {
     const [confirmPwd, setConfirmPwd] = useState<string>('');
     const [userRole, setUserRole] = useState<string>('student'); // 默认学生角色
     const [loading, setLoading] = useState<boolean>(false);
+    const [className, setClassName] = useState<string>('');
 
     const navigate = useNavigate();
 
@@ -50,37 +51,57 @@ export default function SignupPage() {
         }
     };
 
-    // 注册逻辑
+    // 注册逻辑（核心修改：移除仅学生校验班级的逻辑）
     const handleSignup = async () => {
-    // 表单校验（无修改）
-    if (!username.trim()) { alert('请输入用户名！'); return; }
-    if (password.length < 6) { alert('密码长度不能少于6位！'); return; }
-    if (password !== confirmPwd) { alert('两次输入的密码不一致！'); return; }
-
-    // 【修改：移动到此处】设置加载状态
-    setLoading(true); 
-
-    try {
-        // 保留原 fetch 请求逻辑（无修改）
-        const response = await fetch('/api/signup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password, role: userRole }),
-        });
-        const data = await response.json();
-        if (response.ok && data.success) {
-            alert('注册成功！即将跳转到登录页');
-            navigate('/');
-        } else {
-            alert(data.message || '注册失败，请重试！');
+        // 表单校验：所有角色都校验班级
+        if (!username.trim()) { alert('请输入用户名！'); return; }
+        if (password.length < 6) { alert('密码长度不能少于6位！'); return; }
+        if (password !== confirmPwd) { alert('两次输入的密码不一致！'); return; }
+        // 所有角色都校验班级（删除原有的学生角色判断）
+        if (!className.trim()) {
+            alert('请选择班级！');
+            return;
         }
-    } catch (error) {
-        console.error('注册请求失败:', error);
-        alert('网络异常，注册失败！');
-    } finally {
-        setLoading(false);
-    }
-};
+
+        setLoading(true);
+
+        try {
+            // 构造请求体：所有角色都传class
+            const requestBody = {
+                username,
+                password,
+                role: userRole,
+                class: className, // 关键修改：把className改为class，和后端字段统一
+            };
+            const response = await fetch('/api/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody),
+            });
+            const data = await response.json();
+            if (response.ok && data.success) {
+                alert('注册成功！即将跳转到登录页');
+                navigate('/');
+            } else {
+                alert(data.message || '注册失败，请重试！');
+            }
+        } catch (error) {
+            console.error('注册请求失败:', error);
+            alert('网络异常，注册失败！');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const classOptions = [
+        { label: '请选择班级', value: '' },
+        { label: '物联2301', value: '物联2301' },
+        { label: '物联2302', value: '物联2302' },
+        { label: '网络2301', value: '网络2301' },
+        { label: '网络2302', value: '网络2302' },
+        { label: '云计算2301', value: '云计算2301' },
+        { label: '大数据2301', value: '大数据2301' }
+    ];
 
     return (
         <div className={Mainstyle.main}>
@@ -147,6 +168,21 @@ export default function SignupPage() {
                         教师
                     </label>
                 </div>
+
+                {/* 班级选择框：所有角色都显示（删除原有的学生角色判断） */}
+                <select
+                    className={`${Mainstyle.input} ${Mainstyle.classSelect}`}
+                    value={className}
+                    onChange={(e) => setClassName(e.target.value)}
+                    disabled={loading}
+                >
+                    {classOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+
                 {/* 注册按钮 */}
                 <button
                     className={button_Stu.button}

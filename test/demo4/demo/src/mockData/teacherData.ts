@@ -3,13 +3,65 @@
 import StudentCreditChart from "@/layouts/Charts/TeacherCreditChart";
 
 // 课表数据
-export const mockSchedule = [
-  { weekDay: '周一', period: 2, courseName: '物联2302' },
-  { weekDay: '周二', period: 3, courseName: '物联2301' },
-  { weekDay: '周三', period: 4, courseName: '网络2301' },
-  { weekDay: '周五', period: 3, courseName: '网络2302' },
-];
-
+export const classScheduleMap = {
+  "物联2301": [
+    { weekDay: '周一', period: 3, courseName: '阿里云物联网套件开发' },
+    { weekDay: '周一', period: 4, courseName: '阿里云物联网套件开发' },
+    { weekDay: '周三', period: 1, courseName: '阿里云物联网套件开发' },
+    { weekDay: '周三', period: 2, courseName: '阿里云物联网套件开发' },
+    { weekDay: '周三', period: 3, courseName: '大学生职业发展与就业指导' },
+    { weekDay: '周三', period: 4, courseName: '大学生职业发展与就业指导' },
+    { weekDay: '周四', period: 7, courseName: '形式与政策'},
+    { weekDay: '周四', period: 8, courseName: '形式与政策'},
+    { weekDay: '周五', period: 1, courseName: 'Linux系统管理' },
+    { weekDay: '周五', period: 2, courseName: 'Linux系统管理' },
+    { weekDay: '周五', period: 3, courseName: 'Linux系统管理' },
+    { weekDay: '周五', period: 4, courseName: 'Linux系统管理' }
+  ],
+  "网络2301": [
+    { weekDay: '周一', period: 1, courseName: '网络安全技术' },
+    { weekDay: '周一', period: 2, courseName: '网络安全技术' },
+    { weekDay: '周一', period: 3, courseName: 'Web前端开发进阶' },
+    { weekDay: '周一', period: 4, courseName: 'Web前端开发进阶' },
+    { weekDay: '周一', period: 5, courseName: '毛泽东思想和中国特色社会主义理论体系概论' },
+    { weekDay: '周一', period: 6, courseName: '毛泽东思想和中国特色社会主义理论体系概论' },
+    { weekDay: '周二', period: 1, courseName: 'Web前端开发进阶' },
+    { weekDay: '周二', period: 2, courseName: 'Web前端开发进阶' },
+    { weekDay: '周二', period: 3, courseName: '体育与健康' },
+    { weekDay: '周二', period: 4, courseName: '体育与健康' },
+    { weekDay: '周三', period: 1, courseName: '应用写作与表达技巧' },
+    { weekDay: '周三', period: 2, courseName: '应用写作与表达技巧' },
+    { weekDay: '周三', period: 3, courseName: 'UI界面设计' },
+    { weekDay: '周三', period: 4, courseName: 'UI界面设计' },
+    { weekDay: '周四', period: 1, courseName: '计算机网络通信编程' },
+    { weekDay: '周四', period: 2, courseName: '计算机网络通信编程' },
+    { weekDay: '周四', period: 3, courseName: '毛泽东思想和中国特色社会主义理论体系细论' },
+    { weekDay: '周四', period: 4, courseName: '毛泽东思想和中国特色社会主义理论体系细论' },
+    { weekDay: '周四', period: 5, courseName: '工程概预算' },
+    { weekDay: '周四', period: 6, courseName: '工程概预算' },
+    { weekDay: '周五', period: 1, courseName: '形式与政策' },
+    { weekDay: '周五', period: 2, courseName: '形式与政策' },
+    { weekDay: '周五', period: 3, courseName: '计算机网络通信编程' },
+    { weekDay: '周五', period: 4, courseName: '计算机网络通信编程' },
+    { weekDay: '周五', period: 5, courseName: '之江匠心' },
+    { weekDay: '周五', period: 6, courseName: '之江匠心' }
+  ],
+  "云计算2301": [
+    { weekDay: '周一', period: 1, courseName: '传感器与无线传感网络' },
+    { weekDay: '周一', period: 3, courseName: '传感器与无线传感网络' },
+    { weekDay: '周一', period: 5, courseName: '智能终端开发' },
+    { weekDay: '周一', period: 7, courseName: '体育与健康' },
+    { weekDay: '周二', period: 3, courseName: 'Web前端开发基础' },
+    { weekDay: '周二', period: 5, courseName: '思想道德与法制' },
+    { weekDay: '周二', period: 7, courseName: '形式与政策' },
+    { weekDay: '周三', period: 1, courseName: 'Web前端开发基础' },
+    { weekDay: '周三', period: 3, courseName: '人工智能基础' },
+    { weekDay: '周四', period: 1, courseName: '智能终端开发' },
+    { weekDay: '周四', period: 3, courseName: '思想道德与法制' },
+    { weekDay: '周四', period: 5, courseName: '物联网智能网关' },
+    { weekDay: '周五', period: 3, courseName: '中国共产党党史概要' },
+  ]
+};
 // 学分/成绩分布数据
 export const mockCredit = [
   { courseType: '优秀', credit: 5 },

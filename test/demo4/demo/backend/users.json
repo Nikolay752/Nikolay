@@ -1,16 +1,50 @@
 [
   {
-    "id": 1773293255485,
-    "username": "student",
-    "password": "$2b$10$PXvrW7HjP8yp3ZK/uvfU4O7tGWVfYU0LFwQ5ety9JuFCMtYnoHQTy",
+    "id": 1773378571765,
+    "username": "yunjisuan",
+    "password": "$2b$10$h4ZsualdwmCwZ2FNjAEVOeA853TqJvRwQnzVUyT42xW1PoSlGTvvu",
     "role": "student",
-    "createTime": "2026-03-12T05:27:35.485Z"
+    "class": "云计算2301",
+    "createTime": "2026-03-13T05:09:31.765Z"
   },
   {
-    "id": 1773293306084,
-    "username": "teacher",
-    "password": "$2b$10$7Cw1JKqHcPIOna2vCt7k/uEYBepM3qmCJNOEH5gqw8qOW5S3L.n7O",
+    "id": 1773378632177,
+    "username": "wulian",
+    "password": "$2b$10$88VekFHETiLl4NKMxbX7leQZkDMo63pCrRFaBPTwVPzTnFaau69lK",
+    "role": "student",
+    "class": "物联2301",
+    "createTime": "2026-03-13T05:10:32.177Z"
+  },
+  {
+    "id": 1773379238297,
+    "username": "wulianT",
+    "password": "$2b$10$IRYmHEClgaYJQ9PwPRWkeO3L7yjmF1Aay9m1opsmyEaCjceRZwN6a",
     "role": "teacher",
-    "createTime": "2026-03-12T05:28:26.084Z"
+    "class": "物联2301",
+    "createTime": "2026-03-13T05:20:38.297Z"
+  },
+  {
+    "id": 1773380693121,
+    "username": "wulian2301",
+    "password": "$2b$10$Mx4zIFbz.mh7SA/aEkcUAO0Ixla/V58YAPhhKc.1WtzEltR238p5O",
+    "role": "student",
+    "class": "物联2301",
+    "createTime": "2026-03-13T05:44:53.121Z"
+  },
+  {
+    "id": 1773380737928,
+    "username": "wangluo2301",
+    "password": "$2b$10$Hvp0A.uYVXdMm/gx/mtCr.GWzgJoDREbVXqPdHLHQsKvmhSTLBzT.",
+    "role": "student",
+    "class": "网络2301",
+    "createTime": "2026-03-13T05:45:37.928Z"
+  },
+  {
+    "id": 1773380994353,
+    "username": "yunjisuanT",
+    "password": "$2b$10$JTmCwVwwaHWUPnc8MgVMwOqUgfHN3NfeAjwVgtFuXLMw6r0pXorlO",
+    "role": "teacher",
+    "class": "云计算2301",
+    "createTime": "2026-03-13T05:49:54.353Z"
   }
 ]

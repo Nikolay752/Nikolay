@@ -1,129 +1,134 @@
 const express = require('express');
 const cors = require('cors');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const fs = require('fs-extra'); // 更友好的文件操作
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
-app.use(cors()); // 解决跨域
-app.use(express.json()); // 解析JSON请求体
+// 解决跨域和JSON解析问题（修复file parse err核心）
+app.use(cors({ origin: '*', credentials: true }));
+app.use(express.json({ limit: '10mb' })); // 解析JSON请求体，避免解析失败
+app.use(express.urlencoded({ extended: true }));
 
 // 配置项
-const JWT_SECRET = 'your-secret-key-123456'; // Token密钥（自定义）
-const JWT_EXPIRES = '2h'; // Token有效期
-const USER_FILE = './users.json'; // 用户数据文件路径
+const PORT = 3001;
+const USER_FILE_PATH = path.join(__dirname, 'users.json'); // 绝对路径，避免文件找不到
 
-// 初始化用户文件（如果不存在则创建空数组）
-async function initUserFile() {
-  if (!await fs.pathExists(USER_FILE)) {
-    await fs.writeJson(USER_FILE, []);
-  }
-}
+// 初始化users.json（文件不存在则创建，避免读取失败）
+const initUserFile = () => {
+    if (!fs.existsSync(USER_FILE_PATH)) {
+        fs.writeFileSync(USER_FILE_PATH, JSON.stringify([], null, 2), 'utf8');
+    }
+};
 initUserFile();
 
-// 1. 注册接口
+// 读取用户文件（封装方法，避免重复代码）
+const readUsers = () => {
+    const data = fs.readFileSync(USER_FILE_PATH, 'utf8');
+    return JSON.parse(data);
+};
+
+// 写入用户文件（格式化JSON，方便查看）
+const writeUsers = (users) => {
+    fs.writeFileSync(USER_FILE_PATH, JSON.stringify(users, null, 2), 'utf8');
+};
+
+// 注册接口：核心处理班级存储，移除班级有效性校验
 app.post('/api/signup', async (req, res) => {
-  const { username, password, role } = req.body;
+    try {
+        const { username, password, role, class: className } = req.body;
 
-  // 校验参数
-  if (!username || !password || !['student', 'teacher', 'admin'].includes(role)) {
-    return res.json({ success: false, message: '参数错误：用户名/密码/角色不能为空，角色仅支持student/teacher/admin' });
-  }
+        // 基础校验：用户名/密码/角色/班级不能为空
+        if (!username.trim() || !password || !role || !className.trim()) {
+            return res.status(200).json({
+                success: false,
+                message: '用户名、密码、角色、班级均不能为空！'
+            });
+        }
 
-  // 读取现有用户
-  const users = await fs.readJson(USER_FILE);
-  
-  // 检查用户名是否已存在
-  if (users.some(user => user.username === username)) {
-    return res.json({ success: false, message: '用户名已存在' });
-  }
+        // 校验角色仅为student/teacher
+        if (!['student', 'teacher'].includes(role)) {
+            return res.status(200).json({
+                success: false,
+                message: '角色仅支持学生(student)/教师(teacher)！'
+            });
+        }
 
-  // 密码加密
-  const hashedPassword = await bcrypt.hash(password, 10);
+        const users = readUsers();
+        // 校验用户名是否已存在
+        if (users.some(u => u.username === username)) {
+            return res.status(200).json({
+                success: false,
+                message: '用户名已存在，请更换！'
+            });
+        }
 
-  // 新增用户
-  const newUser = {
-    id: Date.now(), // 用时间戳作为唯一ID
-    username,
-    password: hashedPassword, // 存储加密后的密码
-    role,
-    createTime: new Date().toISOString()
-  };
-  users.push(newUser);
+        // 密码加密（10轮盐值）
+        const salt = bcrypt.genSaltSync(10);
+        const hashedPwd = bcrypt.hashSync(password, salt);
 
-  // 写入JSON文件
-  await fs.writeJson(USER_FILE, users, { spaces: 2 }); // spaces:2 格式化JSON，方便查看
+        // 构造新用户：包含class字段，学生/教师统一存储
+        const newUser = {
+            id: Date.now(), // 时间戳作为唯一ID
+            username,
+            password: hashedPwd,
+            role,
+            class: className, // 直接存储选择的班级，无有效性校验
+            createTime: new Date().toISOString()
+        };
 
-  res.json({ success: true, message: '注册成功' });
+        // 写入文件并返回成功
+        users.push(newUser);
+        writeUsers(users);
+        res.status(200).json({ success: true, message: '注册成功！' });
+
+    } catch (error) {
+        console.error('注册接口错误：', error);
+        res.status(500).json({ success: false, message: '服务器内部错误！' });
+    }
 });
 
-// 2. 登录接口
-app.post('/api/login', async (req, res) => {
-  const { username, password } = req.body;
+// 登录接口（附带返回班级信息，方便前端使用）
+app.post('/api/login', (req, res) => {
+    try {
+        const { username, password } = req.body;
+        if (!username.trim() || !password) {
+            return res.status(200).json({ success: false, message: '用户名和密码不能为空！' });
+        }
 
-  // 校验参数
-  if (!username || !password) {
-    return res.json({ success: false, message: '用户名和密码不能为空' });
-  }
+        const users = readUsers();
+        const user = users.find(u => u.username === username);
+        if (!user) {
+            return res.status(200).json({ success: false, message: '用户名不存在！' });
+        }
 
-  // 读取用户数据
-  const users = await fs.readJson(USER_FILE);
-  
-  // 查找用户
-  const user = users.find(user => user.username === username);
-  if (!user) {
-    return res.json({ success: false, message: '用户名不存在' });
-  }
+        // 校验密码
+        const pwdValid = bcrypt.compareSync(password, user.password);
+        if (!pwdValid) {
+            return res.status(200).json({ success: false, message: '密码错误！' });
+        }
 
-  // 校验密码
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    return res.json({ success: false, message: '密码错误' });
-  }
+        // 返回用户信息（包含班级），无JWT简化版，可直接使用
+        res.status(200).json({
+            success: true,
+            message: '登录成功！',
+            token: `user_${user.id}_${Date.now()}`, // 生成简易token（替代空值）
+            userInfo: {
+                id: user.id,
+                username: user.username,
+                role: user.role,
+                class: user.class
+            }
+        });
 
-  // 生成Token（不包含密码）
-  const token = jwt.sign(
-    { id: user.id, username: user.username, role: user.role },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES }
-  );
-
-  // 返回登录结果（不返回密码）
-  res.json({
-    success: true,
-    username: user.username,
-    role: user.role,
-    token,
-    message: '登录成功'
-  });
+    } catch (error) {
+        console.error('登录接口错误：', error);
+        res.status(500).json({ success: false, message: '服务器内部错误！' });
+    }
 });
 
-// 3. 获取用户信息接口（可选，用于页面刷新后获取用户信息）
-app.post('/api/getUserInfo', (req, res) => {
-  const { token } = req.body;
-  if (!token) {
-    return res.json({ success: false, message: 'Token不能为空' });
-  }
-
-  try {
-    // 验证Token
-    const decoded = jwt.verify(token, JWT_SECRET);
-    res.json({
-      success: true,
-      userInfo: {
-        id: decoded.id,
-        username: decoded.username,
-        role: decoded.role
-      }
-    });
-  } catch (err) {
-    res.json({ success: false, message: 'Token无效或已过期' });
-  }
-});
-
-// 启动后端服务
-const PORT = 3001;
+// 启动服务
 app.listen(PORT, () => {
-  console.log(`后端服务运行在 http://localhost:${PORT}`);
-  console.log(`用户数据文件路径：${__dirname}/${USER_FILE}`);
+    console.log(`后端服务成功启动：http://localhost:${PORT}`);
+    console.log(`用户数据文件路径：${USER_FILE_PATH}`);
 });

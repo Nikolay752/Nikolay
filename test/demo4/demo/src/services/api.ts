@@ -4,10 +4,13 @@ import request from './request';
 // 【修改1：将接口定义移到最顶部】
 export interface LoginResponse {
   success: boolean;
-  username: string;
-  token: string;
-  role: string;
   message?: string;
+  userInfo: {
+    id: number;
+    username: string;
+    role: string;
+    class: string; // 补充班级字段
+  };
 }
 
 export const API_BASE_URL = '/api';

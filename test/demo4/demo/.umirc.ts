@@ -2,11 +2,11 @@ import { defineConfig } from "umi";
 
 export default defineConfig({
   routes: [
-    { path: "/", component: "index" },       // 原有路由
-    { path: "/system", component: "system" }, // 新增路由"}
+    { path: "/", component: "index" },      
+    { path: "/system", component: "system" }, 
     { path: "signup", component: "signup" },
-    { path: "/system_teacher", component: "system_teacher"},
-    { path: "/system_student", component: "system_student"}
+    { path: "/system/teacher", component: "system_teacher"},
+    { path: "/system/student", component: "system_student"}
   ],
   npmClient: 'pnpm',
   proxy:{

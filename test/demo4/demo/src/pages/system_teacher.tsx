@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from 'umi'; // 无用的Link删掉，减少冗余
-import Mainstyle from '@/layouts/Mainstyle_teacher.less';
+import { useNavigate } from 'umi';
+import Mainstyle from '../layouts/Mainstyle_teacher.less';
 import button from '../layouts/button_back.less';
 import Hello from "@/layouts/Hello";
 import TeacherCreditChart from "@/layouts/Charts/TeacherCreditChart";
@@ -8,20 +8,23 @@ import TeacherScheduleChart from "@/layouts/Charts/TeacherScheduleChart";
 import ClassCountChart from "@/layouts/Charts/ClassCountChart";
 import Collage from "@/layouts/Charts/Collage";
 import ClassDistribution from "@/layouts/Charts/ClassDistribution";
-import { mockSchedule, mockCredit, mockClass, mockCollage, mockClassDistribution } from "@/mockData/teacherData";
+import { classScheduleMap, mockCredit, mockClass, mockCollage, mockClassDistribution } from "@/mockData/teacherData";
 
 export default function SystemPage() {
     const [currentTime, setCurrentTime] = useState<string>('');
     const [userRole, setUserRole] = useState<string>('');
     const [username, setUsername] = useState<string>('');
+    const [userClass, setUserClass] = useState<string>(''); // 新增：存储教师授课班级
     const [scheduleData, setScheduleData] = useState<any[]>([]);
     const [creditData, setCreditData] = useState<any[]>([]);
     const [classData, setClassData] = useState<any[]>([]);
     const [collageData, setCollageData] = useState<any[]>([]);
-    const [ClassDistributionData, setClassDistributionData] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(true); // 新增：加载状态
+    const [error, setError] = useState<string>(''); // 新增：错误状态
+    const [classDistributionData, setClassDistributionData] = useState<any[]>([]);
     const navigate = useNavigate();
 
-    // 时间格式化（复用原有逻辑）
+    // 时间格式化（和学生系统保持一致）
     const formatTime = () => {
         const date = new Date();
         const year = date.getFullYear();
@@ -33,43 +36,91 @@ export default function SystemPage() {
         return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
     };
 
-    // 模拟/请求图表数据
-    const fetchChartData = () => {
+    // 重构：按班级匹配课表（对齐学生系统逻辑）
+    const fetchChartData = (userClass: string) => {
         try {
-            setScheduleData(mockSchedule);
+            setLoading(true);
+            setError('');
+            
+            // 1. 匹配班级课表（无匹配则用物联2301兜底，和学生系统一致）
+            const targetSchedule = classScheduleMap[userClass as keyof typeof classScheduleMap] 
+            || classScheduleMap["物联2301"];
+            
+            // 2. 校验所有数据格式（增强容错）
+            if (!Array.isArray(targetSchedule)) throw new Error('课表数据格式错误');
+            if (!Array.isArray(mockCredit)) throw new Error('学分数据格式错误');
+            if (!Array.isArray(mockClass)) throw new Error('班级人数数据格式错误');
+            if (!Array.isArray(mockCollage)) throw new Error('院系数据格式错误');
+            if (!Array.isArray(mockClassDistribution)) throw new Error('班级分布数据格式错误');
+            
+            // 3. 设置所有图表数据
+            setScheduleData(targetSchedule);
             setCreditData(mockCredit);
             setClassData(mockClass);
             setCollageData(mockCollage);
             setClassDistributionData(mockClassDistribution);
-            console.log('图表数据初始化成功（来自外部 mock)');
-        } catch (error) {
-            console.error('图表数据初始化失败:', error);
+            
+            console.log(`加载${userClass}班级授课课表成功`);
+        } catch (err) {
+            const errMsg = err instanceof Error ? err.message : '数据加载失败';
+            setError(errMsg);
+            console.error('图表数据加载失败:', err);
+        } finally {
+            setLoading(false);
         }
     };
 
     useEffect(() => {
-        // 1. 实时更新时间
+        // 初始化实时时间
         setCurrentTime(formatTime());
         const timer = setInterval(() => setCurrentTime(formatTime()), 1000);
-
-        // 2. 校验登录态+赋值用户信息
+        
+        // 校验登录状态和角色（对齐学生系统逻辑）
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
         const name = localStorage.getItem('username');
+        const teacherClass = localStorage.getItem('class'); // 新增：读取教师授课班级
+
+        // 未登录：跳转登录页（提前清定时器）
         if (!token) {
+            clearInterval(timer);
+            alert('登录状态已失效，请重新登录！');
             navigate('/login');
-        } else {
-            setUserRole(role || '老师');
-            setUsername(name || '老师');
+            return;
         }
 
-        fetchChartData();
+        // 非教师角色：返回系统首页
+        if (role !== 'teacher') {
+            clearInterval(timer);
+            alert('无教师权限，即将返回系统首页！');
+            navigate('/system');
+            return;
+        }
+
+        // 初始化用户信息
+        setUserRole(role);
+        setUsername(name || '老师');
+        setUserClass(teacherClass || '物联2301'); // 存储班级，兜底为物联2301
+        
+        // 加载对应班级的图表数据
+        fetchChartData(teacherClass || '物联2301');
 
         // 清除定时器
         return () => clearInterval(timer);
     }, [navigate]);
 
-
+    // 加载中/错误兜底（和学生系统保持一致）
+    if (loading) {
+        return <div style={{ textAlign: 'center', padding: '50px' }}>加载中...</div>;
+    }
+    if (error) {
+        return (
+            <div style={{ textAlign: 'center', padding: '50px', color: 'red' }}>
+                <p>加载失败：{error}</p>
+                <button onClick={() => fetchChartData(userClass)} style={{ marginTop: '10px' }}>重试</button>
+            </div>
+        );
+    }
 
     return (
         <div className={Mainstyle.main}>
@@ -79,28 +130,54 @@ export default function SystemPage() {
                     back
                 </div>
             </div>
-
             <div className={Mainstyle.body}>
+                {/* 重构：课表模块 - 显示班级名称 + 对应课表（对齐学生系统） */}
                 <div className={Mainstyle.chartWrapper}>
-                    <h3 className={Mainstyle.chartTitle}>个人课表</h3>
-                    <TeacherScheduleChart scheduleData={scheduleData} />
+                    <h3 className={Mainstyle.chartTitle}>{userClass} - 授课课表</h3>
+                    {scheduleData.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>暂无课表数据</div>
+                    ) : (
+                        <TeacherScheduleChart scheduleData={scheduleData} />
+                    )}
                 </div>
+
+                {/* 其他模块保留，补充空数据兜底 */}
                 <div className={Mainstyle.chartWrapper}>
                     <h3 className={Mainstyle.chartTitle}>学生分数情况</h3>
-                    <TeacherCreditChart creditData={creditData} />
+                    {creditData.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>暂无分数数据</div>
+                    ) : (
+                        <TeacherCreditChart creditData={creditData} />
+                    )}
                 </div>
                 <div className={Mainstyle.chartWrapper}>
                     <h3 className={Mainstyle.chartTitle}>授课班级人数</h3>
-                    <ClassCountChart classData={classData} />
+                    {classData.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>暂无班级人数数据</div>
+                    ) : (
+                        <ClassCountChart classData={classData} />
+                    )}
                 </div>
                 <div className={Mainstyle.chartWrapper}>
                     <h3 className={Mainstyle.chartTitle}>院系分布</h3>
-                    <Collage collageData={collageData} />
+                    {collageData.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>暂无院系数据</div>
+                    ) : (
+                        <Collage collageData={collageData} />
+                    )}
                 </div>
                 <div className={Mainstyle.chartWrapper}>
                     <h3 className={Mainstyle.chartTitle}>学院内人数分布</h3>
-                    <ClassDistribution classDistributionData={ClassDistributionData} />
+                    {classDistributionData.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>暂无班级分布数据</div>
+                    ) : (
+                        <ClassDistribution classDistributionData={classDistributionData} />
+                    )}
                 </div>
+            </div>
+            {/* 新增：页脚显示实时时间（对齐学生系统） */}
+            <div className={Mainstyle.footer}>
+                <span className={Mainstyle.currentTime}>{currentTime}</span>
             </div>
         </div>
     );
