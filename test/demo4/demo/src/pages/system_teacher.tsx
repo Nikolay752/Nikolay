@@ -8,7 +8,7 @@ import TeacherScheduleChart from "@/layouts/Charts/TeacherScheduleChart";
 import ClassCountChart from "@/layouts/Charts/ClassCountChart";
 import Collage from "@/layouts/Charts/Collage";
 import ClassDistribution from "@/layouts/Charts/ClassDistribution";
-import { classScheduleMap, mockCredit, mockClass, mockCollage, mockClassDistribution } from "@/mockData/teacherData";
+import { classScheduleMap, mockCreditMap, mockCollage, mockClassDistribution } from "@/mockData/teacherData";
 
 export default function SystemPage() {
     const [currentTime, setCurrentTime] = useState<string>('');
@@ -37,30 +37,33 @@ export default function SystemPage() {
     };
 
     // 重构：按班级匹配课表（对齐学生系统逻辑）
+    // system_teacher.tsx 中 fetchChartData 函数修改部分
     const fetchChartData = (userClass: string) => {
         try {
             setLoading(true);
             setError('');
-            
-            // 1. 匹配班级课表（无匹配则用物联2301兜底，和学生系统一致）
-            const targetSchedule = classScheduleMap[userClass as keyof typeof classScheduleMap] 
-            || [];
-            
-            // 2. 校验所有数据格式（增强容错）
+
+            // 1. 匹配班级课表（无匹配则用物联2301兜底）
+            const targetSchedule = classScheduleMap[userClass as keyof typeof classScheduleMap]
+                || [];
+
+            // 2. 匹配对应班级的成绩数据（新增：和课表逻辑一致）
+            const targetCredit = mockCreditMap[userClass as keyof typeof mockCreditMap]
+                || []; // 兜底物联2301
+
+            // 3. 校验所有数据格式（增强容错）
             if (!Array.isArray(targetSchedule)) throw new Error('课表数据格式错误');
-            if (!Array.isArray(mockCredit)) throw new Error('学分数据格式错误');
-            if (!Array.isArray(mockClass)) throw new Error('班级人数数据格式错误');
+            if (!Array.isArray(targetCredit)) throw new Error('学分数据格式错误'); // 校验成绩数据
             if (!Array.isArray(mockCollage)) throw new Error('院系数据格式错误');
             if (!Array.isArray(mockClassDistribution)) throw new Error('班级分布数据格式错误');
-            
-            // 3. 设置所有图表数据
+
+            // 4. 设置所有图表数据
             setScheduleData(targetSchedule);
-            setCreditData(mockCredit);
-            setClassData(mockClass);
+            setCreditData(targetCredit); // 赋值匹配后的成绩数据
             setCollageData(mockCollage);
             setClassDistributionData(mockClassDistribution);
-            
-            console.log(`加载${userClass}班级授课课表成功`);
+
+            console.log(`加载${userClass}班级授课课表和成绩数据成功`);
         } catch (err) {
             const errMsg = err instanceof Error ? err.message : '数据加载失败';
             setError(errMsg);
@@ -74,7 +77,7 @@ export default function SystemPage() {
         // 初始化实时时间
         setCurrentTime(formatTime());
         const timer = setInterval(() => setCurrentTime(formatTime()), 1000);
-        
+
         // 校验登录状态和角色（对齐学生系统逻辑）
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
@@ -101,7 +104,7 @@ export default function SystemPage() {
         setUserRole(role);
         setUsername(name || '老师');
         setUserClass(teacherClass || '物联2301'); // 存储班级，兜底为物联2301
-        
+
         // 加载对应班级的图表数据
         fetchChartData(teacherClass || '物联2301');
 
@@ -143,19 +146,11 @@ export default function SystemPage() {
 
                 {/* 其他模块保留，补充空数据兜底 */}
                 <div className={Mainstyle.chartWrapper}>
-                    <h3 className={Mainstyle.chartTitle}>学生分数情况</h3>
+                    <h3 className={Mainstyle.chartTitle}>学生分数情况(人次)</h3>
                     {creditData.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '20px' }}>暂无分数数据</div>
                     ) : (
                         <TeacherCreditChart creditData={creditData} />
-                    )}
-                </div>
-                <div className={Mainstyle.chartWrapper}>
-                    <h3 className={Mainstyle.chartTitle}>授课班级人数</h3>
-                    {classData.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '20px' }}>暂无班级人数数据</div>
-                    ) : (
-                        <ClassCountChart classData={classData} />
                     )}
                 </div>
                 <div className={Mainstyle.chartWrapper}>

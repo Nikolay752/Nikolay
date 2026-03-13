@@ -2,11 +2,13 @@ import React, { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
 import styles from './StudentCharts.less';
 
-interface StudentCreditChartProps {
+// 修正Props接口名和组件名，匹配教师页面使用的TeacherCreditChart
+interface TeacherCreditChartProps {
   creditData: any[];
 }
 
-const StudentCreditChart: React.FC<StudentCreditChartProps> = ({ creditData }) => {
+// 组件名改为TeacherCreditChart，和导入名一致
+const TeacherCreditChart: React.FC<TeacherCreditChartProps> = ({ creditData }) => {
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,17 +23,17 @@ const StudentCreditChart: React.FC<StudentCreditChartProps> = ({ creditData }) =
     if (oldChart) oldChart.dispose();
     const myChart = echarts.init(chartRef.current);
 
-    // 处理数据：过滤无效数据
-    const chartData = creditData.filter(item => item.credit > 0).map(item => ({
-      name: item.courseType || '未知类型',
-      value: item.credit || 0
+    // 关键修复：匹配mock数据的字段（gradeLevel/studentCount）
+    const chartData = creditData.filter(item => item.studentCount > 0).map(item => ({
+      name: item.gradeLevel || '未知等级', // 替换courseType为gradeLevel
+      value: item.studentCount || 0 // 替换credit为studentCount
     }));
 
     const option = {
-        backgroundColor : '#282c34',
+      backgroundColor: '#282c34',
       tooltip: {
         trigger: 'item',
-        formatter: '{b}: {c} 位 ({d}%)',
+        formatter: '{b}: {c} 人次 ({d}%)', // 保持显示逻辑
         backgroundColor: 'rgba(0,0,0,0.7)',
         textStyle: { color: '#fff' }
       },
@@ -43,13 +45,12 @@ const StudentCreditChart: React.FC<StudentCreditChartProps> = ({ creditData }) =
       },
       series: [
         {
-          name: '学分',
+          name: '学生分数等级', // 优化名称，匹配数据含义
           type: 'pie',
           radius: ['40%', '70%'],
-          center: ['60%', '50%'], // 饼图居中，适配容器
+          center: ['60%', '50%'],
           data: chartData,
           label: { show: true, fontSize: 12 },
-          // 饼图颜色自定义，更美观
           color: ['#409eff', '#67c23a', '#e6a23c', '#f56c6c','#909399']
         }
       ]
@@ -68,10 +69,11 @@ const StudentCreditChart: React.FC<StudentCreditChartProps> = ({ creditData }) =
 
   // 兜底：数据为空时显示提示
   if (!Array.isArray(creditData) || creditData.length === 0) {
-    return <div className={styles.chartEmpty}>暂无学分数据</div>;
+    return <div className={styles.chartEmpty}>暂无分数等级数据</div>;
   }
 
-  return <div ref={chartRef} className={styles.chartContainer}></div>;
+  return <div ref={chartRef} className={styles.chartContainer} style={{ height: '400px' }}></div>;
 };
 
-export default StudentCreditChart;
+// 导出正确的组件名
+export default TeacherCreditChart;

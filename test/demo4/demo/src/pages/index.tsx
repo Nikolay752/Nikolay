@@ -85,7 +85,6 @@ export default function Layout() {
         // 新增：显式设置登录状态标识
         localStorage.setItem('isLoggedIn', 'true');
 
-        alert('登录成功！');
         setIsLoggedIn(true);
         navigate('/system');
       } else {

@@ -11,8 +11,8 @@ export const classScheduleMap = {
     { weekDay: '周三', period: 2, courseName: '阿里云物联网套件开发' },
     { weekDay: '周三', period: 3, courseName: '大学生职业发展与就业指导' },
     { weekDay: '周三', period: 4, courseName: '大学生职业发展与就业指导' },
-    { weekDay: '周四', period: 7, courseName: '形式与政策'},
-    { weekDay: '周四', period: 8, courseName: '形式与政策'},
+    { weekDay: '周四', period: 7, courseName: '形式与政策' },
+    { weekDay: '周四', period: 8, courseName: '形式与政策' },
     { weekDay: '周五', period: 1, courseName: 'Linux系统管理' },
     { weekDay: '周五', period: 2, courseName: 'Linux系统管理' },
     { weekDay: '周五', period: 3, courseName: 'Linux系统管理' },
@@ -62,30 +62,38 @@ export const classScheduleMap = {
     { weekDay: '周五', period: 3, courseName: '中国共产党党史概要' },
   ]
 };
-// 学分/成绩分布数据
-export const mockCredit = [
-  { courseType: '优秀', credit: 5 },
-  { courseType: '良好', credit: 8 },
-  { courseType: '中等', credit: 5 },
-  { courseType: '及格', credit: 15 },
-  { courseType: '不及格', credit: 5 }
-];
 
-// 班级人数数据
-export const mockClass = [
-  { className: '网络2301', studentCount: 37 },
-  { className: '网络2302', studentCount: 42 },
-  { className: '物联2301', studentCount: 41 },
-  { className: '物联2302', studentCount: 34 },
-];
+export const mockCreditMap = {
+  "物联2301": [
+    { gradeLevel: '优秀', studentCount: 7 },
+    { gradeLevel: '良好', studentCount: 26 },
+    { gradeLevel: '中等', studentCount: 57 },
+    { gradeLevel: '及格', studentCount: 84 },
+    { gradeLevel: '不及格', studentCount: 6 }
+  ],
+  "网络2301": [ // 补充网络2301数据，保持完整性
+    { gradeLevel: '优秀', studentCount: 11 },
+    { gradeLevel: '良好', studentCount: 37 },
+    { gradeLevel: '中等', studentCount: 102 },
+    { gradeLevel: '及格', studentCount: 206 },
+    { gradeLevel: '不及格', studentCount: 25 }
+  ],
+  "云计算2301": [
+    { gradeLevel: '优秀', studentCount: 13 },
+    { gradeLevel: '良好', studentCount: 52 },
+    { gradeLevel: '中等', studentCount: 124 },
+    { gradeLevel: '及格', studentCount: 212 },
+    { gradeLevel: '不及格', studentCount: 19 }
+  ]
+};
 
 export const mockCollage = [
-    { name: '智能制造学院' , count: 2000},
-    { name: '人工智能学院' , count: 1200},
-    { name: '创意设计学院' , count: 1300},
-    { name: '增材制造学院' , count: 1100},
-    { name: '智慧交通学院' , count: 1300},
-    { name: '国际教育学院' , count: 700 },
+  { name: '智能制造学院', count: 2000 },
+  { name: '人工智能学院', count: 1200 },
+  { name: '创意设计学院', count: 1300 },
+  { name: '增材制造学院', count: 1100 },
+  { name: '智慧交通学院', count: 1300 },
+  { name: '国际教育学院', count: 700 },
 ]
 
 export const mockClassDistribution = [
@@ -94,6 +102,6 @@ export const mockClassDistribution = [
   { className: '计算机网络技术', studentCount: 85 },
   { className: '云计算技术应用', studentCount: 44 },
   { className: '大数据技术', studentCount: 45 },
-  { className: '物联网应用技术（中外合作）', studentCount: 56},
+  { className: '物联网应用技术（中外合作）', studentCount: 56 },
   { className: '物联网工程', studentCount: 42 },
 ];
