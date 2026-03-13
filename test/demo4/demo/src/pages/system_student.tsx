@@ -14,7 +14,7 @@ export default function SystemPage() {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [userRole, setUserRole] = useState<string>('');
   const [username, setUsername] = useState<string>('');
-  const [userClass, setUserClass] = useState<string>(''); // 新增：存储用户班级
+  const [userClass, setUserClass] = useState<string>('');
   const [scheduleData, setScheduleData] = useState<any[]>([]);
   const [creditData, setCreditData] = useState<any[]>([]);
   const [collageData, setCollageData] = useState<any[]>([]);
@@ -41,8 +41,7 @@ export default function SystemPage() {
       setError('');
       
       // 1. 匹配班级课表（无匹配则用物联2301兜底）
-      const targetSchedule = classScheduleMap[userClass as keyof typeof classScheduleMap] 
-  || classScheduleMap["物联2301"];
+      const targetSchedule = classScheduleMap[userClass as keyof typeof classScheduleMap] || [];
       // 2. 校验数据格式
       if (!Array.isArray(targetSchedule)) throw new Error('课表数据格式错误');
       if (!Array.isArray(mockCredit)) throw new Error('学分数据格式错误');

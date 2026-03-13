@@ -44,7 +44,7 @@ export default function SystemPage() {
             
             // 1. 匹配班级课表（无匹配则用物联2301兜底，和学生系统一致）
             const targetSchedule = classScheduleMap[userClass as keyof typeof classScheduleMap] 
-            || classScheduleMap["物联2301"];
+            || [];
             
             // 2. 校验所有数据格式（增强容错）
             if (!Array.isArray(targetSchedule)) throw new Error('课表数据格式错误');
