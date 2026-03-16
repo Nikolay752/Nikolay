@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": 1773624831615,
+    "username": "wulian2301",
+    "password": "$2b$10$sgTWI/ObJPAAB3agtirO7.V1FtadOgSydCs1MOim/21rK1vRWn1cq",
+    "role": "student",
+    "class": "物联2301",
+    "createTime": "2026-03-16T01:33:51.615Z"
+  },
+  {
+    "id": 1773631593492,
+    "username": "wulianT",
+    "password": "$2b$10$rBsVBUyiT3tzeqRfJVKeLOgTtcx7cULyu03OVYhmD48JoB9NLwHni",
+    "role": "teacher",
+    "class": "物联2301",
+    "createTime": "2026-03-16T03:26:33.492Z"
+  }
+]

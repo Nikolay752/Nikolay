@@ -8,6 +8,8 @@ import TeacherScheduleChart from "@/layouts/Charts/TeacherScheduleChart";
 import Collage from "@/layouts/Charts/Collage";
 import ClassDistribution from "@/layouts/Charts/ClassDistribution";
 import { classScheduleMap, mockCreditMap, mockCollage, mockClassDistribution } from "@/mockData/teacherData";
+import Refresh from "@/layouts/Refresh";
+import StudentScheduleChart from "@/layouts/Charts/TeacherScheduleChart";
 
 export default function SystemPage() {
     const [currentTime, setCurrentTime] = useState<string>('');
@@ -21,6 +23,8 @@ export default function SystemPage() {
     const [error, setError] = useState<string>(''); // 新增：错误状态
     const [classDistributionData, setClassDistributionData] = useState<any[]>([]);
     const navigate = useNavigate();
+    const [refreshing, setRefreshing] = useState<boolean>(false);
+    const [chartsLoading, setChartsLoading] = useState<boolean>(false);
 
     // 时间格式化（和学生系统保持一致）
     const formatTime = () => {
@@ -32,6 +36,23 @@ export default function SystemPage() {
         const minutes = String(date.getMinutes()).padStart(2, '0');
         const seconds = String(date.getSeconds()).padStart(2, '0');
         return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+    };
+
+    const handleRefreshCharts = async () => {
+        if (refreshing) return; // 防止重复点击
+        setRefreshing(true);
+        setChartsLoading(true); // 仅让图表模块显示加载中
+        try {
+            // 重新加载图表数据（可替换为真实API请求）
+            await fetchChartData(userClass);
+        } catch (err) {
+            const errMsg = err instanceof Error ? err.message : '刷新失败';
+            setError(errMsg);
+            alert(`刷新失败：${errMsg}`);
+        } finally {
+            setRefreshing(false);
+            setChartsLoading(false); // 关闭图表加载提示
+        }
     };
 
     // 按班级匹配课表（对齐学生系统逻辑）
@@ -121,6 +142,10 @@ export default function SystemPage() {
         <div className={Mainstyle.main}>
             <div className={Mainstyle.header}>
                 <Hello username={username || '老师'} />
+                <div onClick={handleRefreshCharts} style={{ cursor: 'pointer', margin: '0 10px' }}>
+                    <Refresh />
+                    {refreshing && <span style={{ fontSize: '12px', color: '#409eff' }}>刷新中...</span>}
+                </div>
                 <div className={button.button} onClick={() => navigate('/system')}>
                     back
                 </div>
@@ -129,9 +154,11 @@ export default function SystemPage() {
                 {/* 重构：课表模块 - 显示班级名称 + 对应课表（对齐学生系统） */}
                 <div className={Mainstyle.chartWrapper}>
                     <h3 className={Mainstyle.chartTitle}>{userClass} - 授课课表</h3>
-                    {scheduleData.length === 0 ? (
+                    {chartsLoading ? (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>课表刷新中...</div>
+                    ) : scheduleData.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '20px' }}>暂无课表数据</div>
-                    ) : (
+                    ): (
                         <TeacherScheduleChart scheduleData={scheduleData} />
                     )}
                 </div>
@@ -139,7 +166,9 @@ export default function SystemPage() {
                 {/* 其他模块保留，补充空数据兜底 */}
                 <div className={Mainstyle.chartWrapper}>
                     <h3 className={Mainstyle.chartTitle}>学生分数情况(人次)</h3>
-                    {creditData.length === 0 ? (
+                    {chartsLoading ? (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>分数刷新中...</div>
+                    ) : creditData.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '20px' }}>暂无分数数据</div>
                     ) : (
                         <TeacherCreditChart creditData={creditData} />
@@ -147,16 +176,16 @@ export default function SystemPage() {
                 </div>
                 <div className={Mainstyle.chartWrapper}>
                     <h3 className={Mainstyle.chartTitle}>院系分布</h3>
-                    {collageData.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '20px' }}>暂无院系数据</div>
+                    {chartsLoading ? (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>院系刷新中...</div>
                     ) : (
                         <Collage collageData={collageData} />
                     )}
                 </div>
                 <div className={Mainstyle.chartWrapper}>
                     <h3 className={Mainstyle.chartTitle}>学院内人数分布</h3>
-                    {classDistributionData.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '20px' }}>暂无班级分布数据</div>
+                    {chartsLoading ? (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>人数刷新中...</div>
                     ) : (
                         <ClassDistribution classDistributionData={classDistributionData} />
                     )}
