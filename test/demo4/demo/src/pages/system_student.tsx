@@ -119,7 +119,9 @@ export default function SystemPage() {
         </div>
         <div className={button.button} onClick={() => navigate('/')
         }>logout</div>
-        <div className={button.button} onClick={() => navigate('/system')}>back</div>
+        <div className={button.button} onClick={() => navigate('/system')}>
+          back
+          </div>
       </div>
 
       {/* Body：仅这部分参与局部刷新 */}
@@ -128,9 +130,9 @@ export default function SystemPage() {
         <div className={Mainstyle.chartWrapper}>
           <h3 className={Mainstyle.chartTitle}>{userClass} - 个人课表</h3>
           {chartsLoading ? (
-            <div style={{ textAlign: 'center', padding: '20px' }}>课表刷新中...</div>
+            <div className={Mainstyle.span}>课表刷新中...</div>
           ) : scheduleData.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px' }}>暂无课表数据</div>
+            <div className={Mainstyle.span}>暂无课表数据</div>
           ) : (
             <StudentScheduleChart scheduleData={scheduleData} />
           )}
@@ -140,9 +142,9 @@ export default function SystemPage() {
         <div className={Mainstyle.chartWrapper}>
           <h3 className={Mainstyle.chartTitle}>课程学分分布</h3>
           {chartsLoading ? (
-            <div style={{ textAlign: 'center', padding: '20px' }}>学分数据刷新中...</div>
+            <div className={Mainstyle.span}>学分数据刷新中...</div>
           ) : creditData.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px' }}>暂无学分数据</div>
+            <div className={Mainstyle.span}>暂无学分数据</div>
           ) : (
             <StudentCreditChart creditData={creditData} />
           )}
@@ -152,9 +154,9 @@ export default function SystemPage() {
         <div className={Mainstyle.chartWrapper}>
           <h3 className={Mainstyle.chartTitle}>院系分布</h3>
           {chartsLoading ? (
-            <div style={{ textAlign: 'center', padding: '20px' }}>院系数据刷新中...</div>
+            <div className={Mainstyle.span}>院系数据刷新中...</div>
           ) : collageData.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px' }}>暂无院系数据</div>
+            <div className={Mainstyle.span}>暂无院系数据</div>
           ) : (
             <Collage collageData={collageData} />
           )}
