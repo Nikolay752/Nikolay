@@ -6,7 +6,8 @@ export default defineConfig({
     { path: "/system", component: "system" }, 
     { path: "signup", component: "signup" },
     { path: "/system/teacher", component: "system_teacher"},
-    { path: "/system/student", component: "system_student"}
+    { path: "/system/student", component: "system_student"},
+    { path: "/game", component: "game" }
   ],
   npmClient: 'pnpm',
   proxy:{

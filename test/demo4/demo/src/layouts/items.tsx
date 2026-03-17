@@ -31,9 +31,14 @@ const functionList:ListItem[] =[
     },
     {
         id: 5,
-        name: 'psesonal',
+        name: 'game',
+        internalLink: '/game',
+    },
+    {
+        id: 6,
+        name: 'personal',
         internalLink: '/system',
-    }
+    },
   ];
 
   export default function Items() {
