@@ -5,7 +5,7 @@ const path = require('path');
 const app = express();
 const PORT = 3001;
 
-// 跨域配置
+// 跨域配置：允许所有来源（适配本机+手机访问）
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST'],
@@ -90,16 +90,30 @@ app.post('/api/signup', (req, res) => {
   }
 });
 
-// --- 五子棋原有接口 ---
+// --- 核心新增：获取棋盘数据接口（适配本机+手机访问）---
 app.get('/api/gobang/getRecord', (req, res) => {
   try {
-    const data = JSON.parse(fs.readFileSync(GOBANG_RECORD_PATH, 'utf8'));
-    res.json({ code: 200, msg: '读取成功', data });
+    const record = JSON.parse(fs.readFileSync(GOBANG_RECORD_PATH, 'utf8'));
+    res.json({ code: 200, msg: '获取成功', data: record });
   } catch (err) {
-    res.json({ code: 500, msg: '读取失败', data: initDefaultRecord() });
+    // 读取失败则返回默认空棋盘
+    const defaultData = initDefaultRecord();
+    res.json({ code: 500, msg: '获取失败，使用默认数据', error: err.message, data: defaultData });
   }
 });
 
+// --- 核心修改：删除重复的GET重置接口，保留POST重置接口 ---
+app.post('/api/gobang/resetRecord', (req, res) => {
+  try {
+    const defaultData = initDefaultRecord();
+    fs.writeFileSync(GOBANG_RECORD_PATH, JSON.stringify(defaultData, null, 2), 'utf8');
+    res.json({ code: 200, msg: '重置成功', data: defaultData });
+  } catch (err) {
+    res.json({ code: 500, msg: '重置失败', error: err.message });
+  }
+});
+
+// --- 更新棋盘数据接口 ---
 app.post('/api/gobang/updateRecord', (req, res) => {
   try {
     const { currentBoard, currentPlayer, gameOver, winner, gameMode } = req.body;
@@ -118,18 +132,39 @@ app.post('/api/gobang/updateRecord', (req, res) => {
   }
 });
 
-app.post('/api/gobang/resetRecord', (req, res) => {
-  try {
-    const defaultData = initDefaultRecord();
-    fs.writeFileSync(GOBANG_RECORD_PATH, JSON.stringify(defaultData, null, 2), 'utf8');
-    res.json({ code: 200, msg: '重置成功', data: defaultData });
-  } catch (err) {
-    res.json({ code: 500, msg: '重置失败', error: err.message });
-  }
+// --- 给POST接口增加GET访问提示（避免页面空白）---
+app.get('/api/login', (req, res) => {
+  res.json({ success: false, message: '该接口仅支持POST请求，请通过表单/接口工具调用' });
+});
+app.get('/api/signup', (req, res) => {
+  res.json({ success: false, message: '该接口仅支持POST请求，请通过表单/接口工具调用' });
+});
+app.get('/api/gobang/resetRecord', (req, res) => {
+  res.json({ code: 405, msg: '该接口仅支持POST请求，请使用POST方式调用' });
+});
+app.get('/api/gobang/updateRecord', (req, res) => {
+  res.json({ code: 405, msg: '该接口仅支持POST请求，请使用POST方式调用' });
 });
 
-// 启动服务
-app.listen(PORT, () => {
-  console.log(`✅ 服务运行在：http://localhost:${PORT}`);
-  console.log(`✅ 可用接口：/api/login、/api/signup、/api/gobang/*`);
+// 启动服务（绑定0.0.0.0，允许本机+局域网访问）
+app.listen(PORT, '0.0.0.0', () => {
+  // 获取本机局域网IP
+  const os = require('os');
+  const networkInterfaces = os.networkInterfaces();
+  let localIp = 'localhost';
+  for (const key of Object.keys(networkInterfaces)) {
+    for (const iface of networkInterfaces[key]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        localIp = iface.address;
+        break;
+      }
+    }
+  }
+  console.log(`✅ 服务运行在：`);
+  console.log(`   - 本机访问：http://localhost:${PORT}`);
+  console.log(`   - 局域网访问：http://${localIp}:${PORT}`);
+  console.log(`✅ 可用接口：`);
+  console.log(`   - 获取棋盘：GET http://${localIp}:${PORT}/api/gobang/getRecord`);
+  console.log(`   - 重置棋盘：POST http://${localIp}:${PORT}/api/gobang/resetRecord`);
+  console.log(`   - 更新棋盘：POST http://${localIp}:${PORT}/api/gobang/updateRecord`);
 });

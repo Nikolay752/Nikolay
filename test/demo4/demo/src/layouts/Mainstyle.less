@@ -2,8 +2,8 @@ html,
 body {
     margin: 0 !important; // 清除默认外边距
     padding: 0 !important; // 清除默认内边距
-    width: 100% !important; // 让 html/body 占满浏览器宽度
-    height: 100% !important;
+    width: 100vw !important; // 让 html/body 占满浏览器宽度
+    height: 100vh !important;
 }
 
 .main {
@@ -26,8 +26,10 @@ body {
     flex-direction: column;
     text-align: center;
     color: aquamarine;
+    justify-content: center;
+    align-items: center;
     font-size: 50px;
-    margin-top: 0px;
+    margin-top: 10vh;
     padding: 0;
 }
 
@@ -35,7 +37,7 @@ body {
     display: flex;
     justify-content: center;
     flex: 6;
-    margin-top: -50px;
+    margin-top: 0 ;
     flex-direction: column;
     text-align: center;
     width: 100%;
@@ -60,9 +62,8 @@ body {
 
 .input {
     display: block;
-    text-align: center;
     background-color: #282c34;
-    width: 500px;
+    width: 75vw;
     height: 50px;
     margin: 20px auto;
     color: antiquewhite;
@@ -72,6 +73,7 @@ body {
     transition:all 0.5s;
     outline: none;
     border: none;
+    text-align: center;
 }
 
 .input:placeholder {

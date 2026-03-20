@@ -32,7 +32,8 @@ import button from './button.less';
 // 基础配置
 const BOARD_SIZE = 15;
 type ChessType = 'black' | 'white' | null;
-const API_BASE = 'http://localhost:3001/api/gobang';
+// 核心修改：适配本机+局域网访问（优先局域网，本机备用）
+const API_BASE = 'http://192.168.5.30:3001/api/gobang';
 
 // 棋盘数据结构
 interface GobangRecord {
@@ -51,8 +52,11 @@ const AI_DELAY = 800;
 const gobangApi = {
   getRecord: async (): Promise<GobangRecord> => {
     try {
-      const res = await fetch(`${API_BASE}/getRecord`);
-      if (!res.ok) throw new Error(`getRecord接口失败：${res.status}`);
+      // 优先局域网，失败自动切本机
+      let res = await fetch(`${API_BASE}/getRecord`);
+      if (!res.ok) {
+        res = await fetch(`http://localhost:3001/api/gobang/getRecord`);
+      }
       const data = await res.json();
       return data.code === 200 ? data.data : initDefaultRecord();
     } catch (err) {
@@ -62,11 +66,18 @@ const gobangApi = {
   },
   updateRecord: async (record: Partial<GobangRecord>) => {
     try {
-      const res = await fetch(`${API_BASE}/updateRecord`, {
+      let res = await fetch(`${API_BASE}/updateRecord`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(record)
       });
+      if (!res.ok) {
+        res = await fetch(`http://localhost:3001/api/gobang/updateRecord`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(record)
+        });
+      }
       if (!res.ok) throw new Error(`updateRecord接口失败：${res.status}`);
     } catch (err) {
       console.error('❌ updateRecord接口调用失败：', (err as Error).message);
@@ -74,7 +85,10 @@ const gobangApi = {
   },
   resetRecord: async () => {
     try {
-      const res = await fetch(`${API_BASE}/resetRecord`, { method: 'POST' });
+      let res = await fetch(`${API_BASE}/resetRecord`, { method: 'POST' });
+      if (!res.ok) {
+        res = await fetch(`http://localhost:3001/api/gobang/resetRecord`, { method: 'POST' });
+      }
       if (!res.ok) throw new Error(`resetRecord接口失败：${res.status}`);
       return await res.json();
     } catch (err) {
@@ -108,12 +122,12 @@ const Gobang: React.FC = () => {
 
   const getFullBoardData = () => {
     return {
-      currentBoard: board, // 15×15棋盘数组
-      currentPlayer,       // 当前落子方
-      gameOver,            // 游戏是否结束
-      winner,              // 获胜方
-      gameMode,            // 游戏模式
-      updateTime: new Date().toISOString() // 更新时间
+      currentBoard: board,
+      currentPlayer,
+      gameOver,
+      winner,
+      gameMode,
+      updateTime: new Date().toISOString()
     };
   };
 
@@ -142,22 +156,15 @@ const Gobang: React.FC = () => {
   // 状态变化同步后端
   useEffect(() => {
     if (board?.length === BOARD_SIZE) {
-      (gobangApi as any).updateRecord({
-        currentBoard: board, // 改board为currentBoard
+      gobangApi.updateRecord({
+        currentBoard: board,
         currentPlayer,
         gameOver,
         winner,
         gameMode
       });
-      // 同步更新全局变量：统一用currentBoard
-      (window as any).GOBANG_RECORD = {
-        currentBoard: board, // 改board为currentBoard
-        currentPlayer,
-        gameOver,
-        winner,
-        gameMode,
-        updateTime: new Date().toISOString()
-      };
+      // 同步更新全局变量
+      (window as any).GOBANG_RECORD = getFullBoardData();
     }
   }, [board, currentPlayer, gameOver, winner, gameMode]);
 
@@ -173,7 +180,7 @@ const Gobang: React.FC = () => {
     }
   }, [gameMode, currentPlayer, gameOver, board]);
 
-  // 修复：重置游戏（前端+后端同步重置）
+  // 核心修改：重置游戏（前端+后端同步重置）
   const resetGame = async () => {
     const res = await gobangApi.resetRecord();
     if (res.code === 200) {
@@ -182,8 +189,9 @@ const Gobang: React.FC = () => {
       setGameOver(res.data.gameOver);
       setWinner(res.data.winner);
       setIsAiThinking(false);
+      // 更新全局变量
       (window as any).GOBANG_RECORD = {
-        currentBoard: res.data.currentBoard, // 改board为currentBoard
+        currentBoard: res.data.currentBoard,
         currentPlayer: res.data.currentPlayer,
         gameOver: res.data.gameOver,
         winner: res.data.winner,
